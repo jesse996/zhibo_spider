@@ -51,7 +51,7 @@ export class DouyuService {
         });
 
         await page.waitForTimeout(5000);
-        reject('timeout');
+        resolve({ err: '5', data: '超时' });
       } catch (error) {
         reject(error);
       }

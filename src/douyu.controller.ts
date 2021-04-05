@@ -8,10 +8,6 @@ export class DouyuController {
 
   @Get(':id')
   async getHello(@Param('id') id): Promise<any> {
-    try {
-      return await this.douyuService.getPlayUrl(id);
-    } catch (e) {
-      return { err: 2, data: '未知错误' };
-    }
+    return await this.douyuService.getPlayUrl(id);
   }
 }
