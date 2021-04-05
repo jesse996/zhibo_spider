@@ -24,6 +24,8 @@
     "@nestjs/common": "^7.6.15",
     "@nestjs/core": "^7.6.15",
     "@nestjs/platform-express": "^7.6.15",
+    "ioredis": "^4.25.0",
+    "nest-schedule": "^0.6.4",
     "puppeteer": "^8.0.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
