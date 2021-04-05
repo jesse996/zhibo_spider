@@ -65,13 +65,11 @@ export class DouyuService extends NestSchedule {
   async spider() {
     const page = this.page;
     const redis = this.redisSerive.redis;
+    console.log('run douyu spider task...');
 
     await page.goto('https://www.douyu.com/directory/all');
 
-    let cnt = 1;
     while (true) {
-      console.log('page:', cnt++);
-
       //滑到底,有bug
       await page.waitForSelector('.ListFooter', {
         timeout: 10000,
