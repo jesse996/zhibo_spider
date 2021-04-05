@@ -61,7 +61,12 @@ export class DouyuService extends NestSchedule {
       }
     });
 
-  @Interval(1000 * 60 * 60, { immediate: true })
+  @Interval(1000 * 60 * 60, {
+    waiting: true,
+    immediate: true,
+    retryInterval: 2000,
+    maxRetry: 3,
+  })
   async spider() {
     const page = this.page;
     const redis = this.redisSerive.redis;
