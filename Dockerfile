@@ -1,5 +1,5 @@
-FROM buildkite/puppeteer:latest as builder
-WORKDIR /app/zhibo_url/
+FROM buildkite/puppeteer:latest 
+WORKDIR /app/zhibo_apider/
 COPY . .
 RUN yarn install && yarn run build
 ENTRYPOINT ["node","dist/main.js"]
