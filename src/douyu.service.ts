@@ -1,3 +1,4 @@
+import Redis from 'ioredis';
 import { Injectable } from '@nestjs/common';
 import { Interval, NestSchedule } from 'nest-schedule';
 import { PuppeteerService } from './puppeteer.service';
@@ -31,26 +32,27 @@ export class DouyuService extends NestSchedule {
           const url = response.url();
           if (url.includes('lapi/live/getH5Play')) {
             const json = await response.json();
+
+            if (json.error === 0) {
+              const rtmp_live = json.data.rtmp_live;
+              const match = rtmp_live.match(/([^_]+)(\_\w+)?(\.[^?]+)/);
+              const new_rtmp = match[1] + match[3];
+
+              const res = 'http://tx2play1.douyucdn.cn/live/' + new_rtmp;
+              resolve({ err: 0, data: res });
+              return;
+            }
             if (json.error === 102) {
               resolve({ err: 1, data: '房间不存在' });
-              return;
             } else if (json.error === -5) {
               resolve({ err: 2, data: '房间未开播' });
-              return;
-            }
-
-            if (json.error !== 0) {
+            } else if (json.error !== 0) {
               resolve('未知错误');
-              return;
             }
 
-            const rtmp_live = json.data.rtmp_live;
-            const match = rtmp_live.match(/([^_]+)(\_\w+)?(\.[^?]+)/);
-            const new_rtmp = match[1] + match[3];
-
-            const res = 'http://tx2play1.douyucdn.cn/live/' + new_rtmp;
-            resolve({ err: 0, data: res });
-            return;
+            //房间未开播，删除redis zset中的对应数据
+            const redis = this.redisSerive.redis;
+            redis.zrem(this.REDIS_ROOMS_SET_KEY, rid);
           }
         });
 
