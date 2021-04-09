@@ -28,9 +28,9 @@ export class DouyuService extends NestSchedule {
         const url = 'https://www.douyu.com/' + rid;
         await page.goto(url);
         page.on('response', async (response) => {
-          let url = response.url();
+          const url = response.url();
           if (url.includes('lapi/live/getH5Play')) {
-            let json = await response.json();
+            const json = await response.json();
             if (json.error === 102) {
               resolve({ err: 1, data: '房间不存在' });
               return;
@@ -44,11 +44,11 @@ export class DouyuService extends NestSchedule {
               return;
             }
 
-            let rtmp_live = json.data.rtmp_live;
-            let match = rtmp_live.match(/([^_]+)(\_\w+)?(\.[^?]+)/);
-            let new_rtmp = match[1] + match[3];
+            const rtmp_live = json.data.rtmp_live;
+            const match = rtmp_live.match(/([^_]+)(\_\w+)?(\.[^?]+)/);
+            const new_rtmp = match[1] + match[3];
 
-            let res = 'http://tx2play1.douyucdn.cn/live/' + new_rtmp;
+            const res = 'http://tx2play1.douyucdn.cn/live/' + new_rtmp;
             resolve({ err: 0, data: res });
             return;
           }
@@ -85,19 +85,20 @@ export class DouyuService extends NestSchedule {
           .scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
 
-      let data = await page.$$eval(
+      const data = await page.$$eval(
         '.layout-Module .layout-Cover-list li a.DyListCover-wrap',
         (items) => {
           return items.map((item) => {
-            let title = item
+            const title = item
               .querySelector('.DyListCover-intro')
               .getAttribute('title');
-            let coverImg = item
+            const coverImg = item
               .querySelector('.DyImg-content')
               .getAttribute('src');
-            let username = item.querySelector('.DyListCover-user').textContent;
-            let rid = item.getAttribute('href').substring(1);
-            let res = {
+            const username = item.querySelector('.DyListCover-user')
+              .textContent;
+            const rid = item.getAttribute('href').substring(1);
+            const res = {
               title,
               coverImg,
               username,
@@ -109,7 +110,7 @@ export class DouyuService extends NestSchedule {
       );
 
       // 添加到redis
-      let pipeline = redis.pipeline();
+      const pipeline = redis.pipeline();
       for (const room of data) {
         //加到zset中，score是时间，value是rid
         pipeline.zadd(this.REDIS_ROOMS_SET_KEY, Date.now(), room.rid);
@@ -135,7 +136,7 @@ export class DouyuService extends NestSchedule {
         await page.waitForTimeout(1000);
 
         //最后一页
-        let isLast = await page.$eval(
+        const isLast = await page.$eval(
           '.ListFooter .dy-Pagination-next',
           (el) => {
             return el.getAttribute('aria-disabled');
