@@ -3,7 +3,7 @@ import Redis from 'ioredis';
 
 @Injectable()
 export default class RedisService {
-  redis: Redis;
+  redis: Redis.Redis;
 
   constructor() {
     this.redis = new Redis({

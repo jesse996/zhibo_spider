@@ -52,7 +52,7 @@ export class DouyuService extends NestSchedule {
 
             //房间未开播，删除redis zset中的对应数据
             const redis = this.redisSerive.redis;
-            redis.zrem(this.REDIS_ROOMS_SET_KEY, rid);
+            await redis.zrem(this.REDIS_ROOMS_SET_KEY, rid);
           }
         });
 
