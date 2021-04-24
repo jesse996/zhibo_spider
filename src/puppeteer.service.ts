@@ -5,6 +5,7 @@ const puppeteer = require('puppeteer');
 export class PuppeteerService {
   public getBrowserAndPage = async () => {
     const browser = await puppeteer.launch({
+      // headless: false,
       args: [
         // Required for Docker version of Puppeteer
         '--no-sandbox',

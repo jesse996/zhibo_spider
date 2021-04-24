@@ -88,11 +88,8 @@ export class DouyuService extends NestSchedule {
       await page.waitForSelector('.ListFooter', {
         timeout: 10000,
       });
-      await page.evaluate(() => {
-        document
-          .querySelector('.ListFooter')
-          .scrollIntoView({ behavior: 'smooth', block: 'start' });
-      });
+      await autoScroll(page);
+      await page.waitForTimeout(500);
 
       const data = await page.$$eval(
         '.layout-Module .layout-Cover-list li a.DyListCover-wrap',
@@ -142,8 +139,6 @@ export class DouyuService extends NestSchedule {
           timeout: 5000,
         });
 
-        await page.waitForTimeout(1000);
-
         //最后一页
         const isLast = await page.$eval(
           '.ListFooter .dy-Pagination-next',
@@ -160,7 +155,8 @@ export class DouyuService extends NestSchedule {
           '.ListFooter .dy-Pagination-next .dy-Pagination-item-custom',
         );
       } catch (e) {
-        console.log('-----spider finish----');
+        console.log('-----spider error----');
+        console.log(e);
         break;
       }
     }
@@ -170,4 +166,25 @@ export class DouyuService extends NestSchedule {
 
     // await redis.quit();
   }
+}
+
+//滑倒底
+//https://stackoverflow.com/questions/51529332/puppeteer-scroll-down-until-you-cant-anymore
+async function autoScroll(page) {
+  await page.evaluate(async () => {
+    await new Promise((resolve, reject) => {
+      var totalHeight = 0;
+      var distance = 100;
+      var timer = setInterval(() => {
+        var scrollHeight = document.body.scrollHeight;
+        window.scrollBy(0, distance);
+        totalHeight += distance;
+
+        if (totalHeight >= scrollHeight) {
+          clearInterval(timer);
+          resolve('');
+        }
+      }, 100);
+    });
+  });
 }
