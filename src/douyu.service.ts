@@ -52,13 +52,20 @@ export class DouyuService extends NestSchedule {
 
             //房间未开播，删除redis zset中的对应数据
             const redis = this.redisSerive.redis;
-            await redis.zrem(this.REDIS_ROOMS_SET_KEY, rid);
+            try {
+              await redis.zrem(this.REDIS_ROOMS_SET_KEY, rid);
+            } catch (e) {
+              console.log('zrem err');
+              console.log(e);
+            }
           }
         });
 
         await page.waitForTimeout(5000);
         resolve({ err: '5', data: '超时' });
       } catch (error) {
+        console.log('douyu service getPlayUrl error');
+        console.log(error);
         reject(error);
       }
     });
@@ -153,8 +160,7 @@ export class DouyuService extends NestSchedule {
           '.ListFooter .dy-Pagination-next .dy-Pagination-item-custom',
         );
       } catch (e) {
-        console.log('');
-        console.log('-----finish----');
+        console.log('-----spider finish----');
         break;
       }
     }
@@ -162,6 +168,6 @@ export class DouyuService extends NestSchedule {
     //设置rid过期时间,6小时,因为redis主要存当前开播的rid
     redis.expire(this.REDIS_ROOMS_SET_KEY, 3600000 * 6);
 
-    await redis.quit();
+    // await redis.quit();
   }
 }
