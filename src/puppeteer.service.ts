@@ -6,6 +6,10 @@ export class PuppeteerService {
   public getBrowserAndPage = async () => {
     const browser = await puppeteer.launch({
       // headless: false,
+      defaultViewport: {
+        width: 2400,
+        height: 1200,
+      },
       args: [
         // Required for Docker version of Puppeteer
         '--no-sandbox',

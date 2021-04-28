@@ -23,7 +23,6 @@ export class DouyuService extends NestSchedule {
   getPlayUrl = (rid: string) =>
     new Promise(async (resolve, reject) => {
       try {
-        // const page = await this.puppeteerService.getBrowserAndPage();
         const page = this.page;
 
         const url = 'https://www.douyu.com/' + rid;
@@ -83,15 +82,31 @@ export class DouyuService extends NestSchedule {
 
     await page.goto('https://www.douyu.com/directory/all');
 
+    //房间索引
+    let roomIndex = 0;
+    //页码
+    let pageNum = 0;
+
+    interface RoomInfo {
+      title: string;
+      coverImg: string;
+      username: string;
+      rid: string;
+    }
+
+
     while (true) {
-      //滑到底,有bug
+      pageNum++;
+      console.log('starting ' + pageNum);
+
       await page.waitForSelector('.ListFooter', {
         timeout: 10000,
       });
+      await page.waitForTimeout(1500);
       await autoScroll(page);
       await page.waitForTimeout(500);
 
-      const data = await page.$$eval(
+      const data: RoomInfo[] = await page.$$eval(
         '.layout-Module .layout-Cover-list li a.DyListCover-wrap',
         (items) => {
           return items.map((item) => {
@@ -115,20 +130,23 @@ export class DouyuService extends NestSchedule {
         },
       );
 
+      //清除redis的set
+      if (pageNum == 1) {
+        await redis.del(this.REDIS_ROOMS_SET_KEY);
+      }
+
       // 添加到redis
       const pipeline = redis.pipeline();
       for (const room of data) {
-        //加到zset中，score是时间，value是rid
-        pipeline.zadd(this.REDIS_ROOMS_SET_KEY, Date.now(), room.rid);
+        //加到zset中，score是索引，value是rid
+        pipeline.zadd(this.REDIS_ROOMS_SET_KEY, roomIndex++, room.rid);
         //加到hash中，key是rid，value是详细值
-        pipeline.hset(
-          this.REDIS_ROOMS_HASH_KEY,
-          room.rid,
-          JSON.stringify({
-            title: room.title,
-            coverImg: room.coverImg,
-            username: room.username,
-          }),
+        pipeline.hmset(
+          `${this.REDIS_ROOMS_HASH_KEY}::${room.rid}::${room.username}`,
+          'title',
+          room.title,
+          'coverImg',
+          room.coverImg,
         );
       }
       await pipeline.exec();
@@ -161,10 +179,9 @@ export class DouyuService extends NestSchedule {
       }
     }
 
-    //设置rid过期时间,6小时,因为redis主要存当前开播的rid
-    redis.expire(this.REDIS_ROOMS_SET_KEY, 3600000 * 6);
 
-    // await redis.quit();
+    //设置rid过期时间,1小时,因为redis主要存当前开播的rid
+    redis.expire(this.REDIS_ROOMS_SET_KEY, 3600000 * 1);
   }
 }
 
@@ -184,7 +201,7 @@ async function autoScroll(page) {
           clearInterval(timer);
           resolve('');
         }
-      }, 100);
+      }, 300);
     });
   });
 }
