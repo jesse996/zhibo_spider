@@ -15,7 +15,7 @@ export class DouyuService extends NestSchedule {
     readonly redisSerive: RedisService,
   ) {
     super();
-    this.puppeteerService.getBrowserAndPage().then((data) => {
+    this.puppeteerService.getPuppeteerPage().then((data) => {
       this.page = data;
     });
   }
