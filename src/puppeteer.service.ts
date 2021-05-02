@@ -3,7 +3,7 @@ const puppeteer = require('puppeteer');
 
 @Injectable()
 export class PuppeteerService {
-  public getBrowserAndPage = async () => {
+  public getPuppeteerPage = async () => {
     const browser = await puppeteer.launch({
       // headless: false,
       defaultViewport: {
