@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-const puppeteer = require('puppeteer');
+import * as puppeteer from 'puppeteer';
 
 @Injectable()
 export class PuppeteerService {
@@ -19,7 +19,7 @@ export class PuppeteerService {
         '--disable-dev-shm-usage',
       ],
     });
-    let page = await browser.newPage();
+    const page = await browser.newPage();
     return page;
   };
 }

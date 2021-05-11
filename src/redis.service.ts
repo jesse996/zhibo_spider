@@ -8,8 +8,8 @@ export default class RedisService {
   constructor() {
     this.redis = new Redis({
       port: 6379, // Redis port
-      host: 'redis', // Redis host
-      // host: 'localhost', // Redis host
+      // host: 'redis', // Redis host
+      host: 'localhost', // Redis host
       family: 4, // 4 (IPv4) or 6 (IPv6)
       // password: '123',
       password: '',

@@ -1,12 +1,12 @@
-import Redis from 'ioredis';
 import { Injectable } from '@nestjs/common';
 import { Interval, NestSchedule } from 'nest-schedule';
 import { PuppeteerService } from './puppeteer.service';
 import RedisService from './redis.service';
+import { Page } from 'puppeteer';
 
 @Injectable()
 export class DouyuService extends NestSchedule {
-  page: any;
+  page: Page;
   readonly REDIS_ROOMS_SET_KEY = 'douyu::rooms::set';
   readonly REDIS_ROOMS_HASH_KEY = 'douyu::rooms::hash';
 
@@ -69,12 +69,12 @@ export class DouyuService extends NestSchedule {
       }
     });
 
-  @Interval(1000 * 60 * 60, {
-    waiting: true,
-    immediate: true,
-    retryInterval: 2000,
-    maxRetry: 3,
-  })
+  // @Interval(1000 * 60 * 60, {
+  //   waiting: true,
+  //   immediate: true,
+  //   retryInterval: 2000,
+  //   maxRetry: 3,
+  // })
   async spider() {
     const page = this.page;
     const redis = this.redisSerive.redis;
