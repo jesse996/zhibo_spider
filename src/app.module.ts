@@ -6,7 +6,6 @@ import { AppService } from './app.service';
 import { DouyuService } from './douyu.service';
 import { ScheduleModule } from 'nest-schedule';
 import RedisService from './redis.service';
-// import { HuyaService } from './huya.service';
 import { InjectBrowser, PuppeteerModule } from 'nest-puppeteer';
 import { Browser } from 'puppeteer';
 import { HuyaService } from './huya.service';
@@ -18,13 +17,7 @@ import { HuyaService } from './huya.service';
     PuppeteerModule.forFeature(),
   ],
   controllers: [AppController, HuyaController, DouyuController],
-  providers: [
-    AppService,
-    DouyuService,
-    // PuppeteerService,
-    RedisService,
-    HuyaService,
-  ],
+  providers: [AppService, DouyuService, RedisService, HuyaService],
 })
 export class AppModule {
   constructor(@InjectBrowser() private readonly browser: Browser) {}
