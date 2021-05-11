@@ -1,16 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { Page } from 'puppeteer';
-import { PuppeteerService } from './puppeteer.service';
+import type { Page } from 'puppeteer';
+import { InjectPage } from 'nest-puppeteer';
 
 @Injectable()
 export class HuyaService {
-  page: Page;
-
-  constructor(readonly puppeteerService: PuppeteerService) {
-    this.puppeteerService.getBrowserAndPage().then((data) => {
-      this.page = data;
-    });
-  }
+  constructor(
+    @InjectPage() private readonly page: Page, // readonly
+  ) {}
 
   async search(name: string) {
     await this.page.goto(`https://www.huya.com/search?hsk=${name}`);

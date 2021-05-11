@@ -1,23 +1,20 @@
+import { InjectBrowser, InjectPage } from 'nest-puppeteer';
 import { Injectable } from '@nestjs/common';
 import { Interval, NestSchedule } from 'nest-schedule';
-import { PuppeteerService } from './puppeteer.service';
 import RedisService from './redis.service';
-import { Page } from 'puppeteer';
+import { Page, Browser } from 'puppeteer';
 
 @Injectable()
 export class DouyuService extends NestSchedule {
-  page: Page;
   readonly REDIS_ROOMS_SET_KEY = 'douyu::rooms::set';
   readonly REDIS_ROOMS_HASH_KEY = 'douyu::rooms::hash';
 
   constructor(
-    readonly puppeteerService: PuppeteerService,
+    @InjectPage() private readonly page: Page,
+    @InjectBrowser() private readonly browser: Browser,
     readonly redisSerive: RedisService,
   ) {
     super();
-    this.puppeteerService.getPuppeteerPage().then((data) => {
-      this.page = data;
-    });
   }
 
   getPlayUrl = (rid: string) =>
@@ -69,14 +66,14 @@ export class DouyuService extends NestSchedule {
       }
     });
 
-  // @Interval(1000 * 60 * 60, {
-  //   waiting: true,
-  //   immediate: true,
-  //   retryInterval: 2000,
-  //   maxRetry: 3,
-  // })
+  @Interval(1000 * 60 * 60, {
+    waiting: true,
+    immediate: true,
+    retryInterval: 2000,
+    maxRetry: 3,
+  })
   async spider() {
-    const page = this.page;
+    const page = await this.browser.newPage();
     const redis = this.redisSerive.redis;
     console.log('run douyu spider task...');
 
@@ -93,7 +90,6 @@ export class DouyuService extends NestSchedule {
       username: string;
       rid: string;
     }
-
 
     while (true) {
       pageNum++;
@@ -173,12 +169,10 @@ export class DouyuService extends NestSchedule {
           '.ListFooter .dy-Pagination-next .dy-Pagination-item-custom',
         );
       } catch (e) {
-        console.log('-----spider error----');
-        console.log(e);
+        console.log('-----finish----');
         break;
       }
     }
-
 
     //设置rid过期时间,1小时,因为redis主要存当前开播的rid
     redis.expire(this.REDIS_ROOMS_SET_KEY, 3600000 * 1);
@@ -190,10 +184,10 @@ export class DouyuService extends NestSchedule {
 async function autoScroll(page) {
   await page.evaluate(async () => {
     await new Promise((resolve, reject) => {
-      var totalHeight = 0;
-      var distance = 100;
-      var timer = setInterval(() => {
-        var scrollHeight = document.body.scrollHeight;
+      let totalHeight = 0;
+      const distance = 100;
+      const timer = setInterval(() => {
+        const scrollHeight = document.body.scrollHeight;
         window.scrollBy(0, distance);
         totalHeight += distance;
 
