@@ -1,17 +1,16 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 
 @Injectable()
 export default class RedisService {
   redis: Redis.Redis;
 
-  constructor() {
+  constructor(private readonly config: ConfigService) {
     this.redis = new Redis({
       port: 6379, // Redis port
-      // host: 'redis', // Redis host
-      host: 'localhost', // Redis host
+      host: config.get('REDIS_URL'), // Redis host
       family: 4, // 4 (IPv4) or 6 (IPv6)
-      // password: '123',
       password: '',
       db: 0,
     });

@@ -9,21 +9,16 @@ import RedisService from './redis.service';
 import { InjectBrowser, PuppeteerModule } from 'nest-puppeteer';
 import { Browser } from 'puppeteer';
 import { HuyaService } from './huya.service';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
     ScheduleModule.register(),
     PuppeteerModule.forRoot({ isGlobal: false }),
     PuppeteerModule.forFeature(),
+    ConfigModule.forRoot(),
   ],
   controllers: [AppController, HuyaController, DouyuController],
   providers: [AppService, DouyuService, RedisService, HuyaService],
 })
-export class AppModule {
-  constructor(@InjectBrowser() private readonly browser: Browser) {}
-
-  async configure() {
-    const version = await this.browser.version();
-    Logger.log(`Launched browser: ${version}`, 'Test');
-  }
-}
+export class AppModule {}

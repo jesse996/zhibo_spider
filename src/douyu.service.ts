@@ -1,8 +1,8 @@
-import { InjectBrowser, InjectPage } from 'nest-puppeteer';
+import { InjectContext, InjectPage } from 'nest-puppeteer';
 import { Injectable } from '@nestjs/common';
 import { Interval, NestSchedule } from 'nest-schedule';
 import RedisService from './redis.service';
-import { Page, Browser } from 'puppeteer';
+import { Page, BrowserContext } from 'puppeteer';
 
 @Injectable()
 export class DouyuService extends NestSchedule {
@@ -11,7 +11,7 @@ export class DouyuService extends NestSchedule {
 
   constructor(
     @InjectPage() private readonly page: Page,
-    @InjectBrowser() private readonly browser: Browser,
+    @InjectContext() private readonly browser: BrowserContext,
     readonly redisSerive: RedisService,
   ) {
     super();
