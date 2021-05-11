@@ -10,26 +10,37 @@ export class HuyaService {
 
   async search(name: string) {
     await this.page.goto(`https://www.huya.com/search?hsk=${name}`);
-    await this.page.waitForSelector('.box-bd .search-live-list', {
+    await this.page.waitForSelector('.search-box', {
       timeout: 5000,
     });
-    const list = await this.page.$$eval(
-      '.search-box:nth-of-type(3) .box-bd .search-live-list .game-live-item',
-      (els) => {
-        return els.map((el) => {
-          return {
-            coverImg: el.querySelector('.pic').getAttribute('src'),
-            title: el.querySelector('.title').getAttribute('title'),
-            name: el.querySelector('.nick').getAttribute('title'),
-            rid: el
-              .querySelector('.title')
-              .getAttribute('href')
-              .split('/')
-              .pop(),
-          };
-        });
-      },
-    );
-    console.log(list);
+
+    const liveList =
+      (await this.page.$$eval('.search-box', (els) => {
+        for (const el of els) {
+          const exitLive: boolean = el
+            .querySelector('.box-hd>h3.title')
+            .innerHTML.includes('相关直播');
+          if (exitLive) {
+            const res = [];
+            el.querySelectorAll('.search-live-list .game-live-item').forEach(
+              (el) => {
+                const tmp = {
+                  coverImg: el.querySelector('.pic').getAttribute('src'),
+                  title: el.querySelector('.title').getAttribute('title'),
+                  name: el.querySelector('.nick').getAttribute('title'),
+                  rid: el
+                    .querySelector('.title')
+                    .getAttribute('href')
+                    .split('/')
+                    .pop(),
+                };
+                res.push(tmp);
+              },
+            );
+            return res;
+          }
+        }
+      })) || [];
+    return liveList;
   }
 }
