@@ -1,20 +1,23 @@
-import { InjectContext, InjectPage } from 'nest-puppeteer';
 import { Injectable } from '@nestjs/common';
 import { Interval, NestSchedule } from 'nest-schedule';
+import { PuppeteerService } from './puppeteer.service';
 import RedisService from './redis.service';
-import { Page, BrowserContext } from 'puppeteer';
+import type { Page } from 'puppeteer';
 
 @Injectable()
 export class DouyuService extends NestSchedule {
+  page: Page;
   readonly REDIS_ROOMS_SET_KEY = 'douyu::rooms::set';
   readonly REDIS_ROOMS_HASH_KEY = 'douyu::rooms::hash';
 
   constructor(
-    @InjectPage() private readonly page: Page,
-    @InjectContext() private readonly browser: BrowserContext,
+    readonly puppeteerService: PuppeteerService,
     readonly redisSerive: RedisService,
   ) {
     super();
+    this.puppeteerService.getPuppeteerPage().then((data) => {
+      this.page = data;
+    });
   }
 
   getPlayUrl = (rid: string) =>
@@ -73,7 +76,7 @@ export class DouyuService extends NestSchedule {
     maxRetry: 3,
   })
   async spider() {
-    const page = await this.browser.newPage();
+    const page = this.page;
     const redis = this.redisSerive.redis;
     console.log('run douyu spider task...');
 
@@ -169,7 +172,8 @@ export class DouyuService extends NestSchedule {
           '.ListFooter .dy-Pagination-next .dy-Pagination-item-custom',
         );
       } catch (e) {
-        console.log('-----finish----');
+        console.log('-----spider error----');
+        console.log(e);
         break;
       }
     }

@@ -1,46 +1,38 @@
+import { PuppeteerService } from './puppeteer.service';
 import { Injectable } from '@nestjs/common';
 import type { Page } from 'puppeteer';
-import { InjectPage } from 'nest-puppeteer';
 
 @Injectable()
 export class HuyaService {
-  constructor(
-    @InjectPage() private readonly page: Page, // readonly
-  ) {}
+  page: Page;
+  constructor(private readonly puppeteerService: PuppeteerService) {
+    this.puppeteerService.getPuppeteerPage().then((data) => {
+      this.page = data;
+    });
+  }
 
   async search(name: string) {
     await this.page.goto(`https://www.huya.com/search?hsk=${name}`);
-    await this.page.waitForSelector('.search-box', {
+    await this.page.waitForSelector('.box-bd .search-live-list', {
       timeout: 5000,
     });
-
-    const liveList =
-      (await this.page.$$eval('.search-box', (els) => {
-        for (const el of els) {
-          const exitLive: boolean = el
-            .querySelector('.box-hd>h3.title')
-            .innerHTML.includes('相关直播');
-          if (exitLive) {
-            const res = [];
-            el.querySelectorAll('.search-live-list .game-live-item').forEach(
-              (el) => {
-                const tmp = {
-                  coverImg: el.querySelector('.pic').getAttribute('src'),
-                  title: el.querySelector('.title').getAttribute('title'),
-                  name: el.querySelector('.nick').getAttribute('title'),
-                  rid: el
-                    .querySelector('.title')
-                    .getAttribute('href')
-                    .split('/')
-                    .pop(),
-                };
-                res.push(tmp);
-              },
-            );
-            return res;
-          }
-        }
-      })) || [];
-    return liveList;
+    const list = await this.page.$$eval(
+      '.search-box:nth-of-type(3) .box-bd .search-live-list .game-live-item',
+      (els) => {
+        return els.map((el) => {
+          return {
+            coverImg: el.querySelector('.pic').getAttribute('src'),
+            title: el.querySelector('.title').getAttribute('title'),
+            name: el.querySelector('.nick').getAttribute('title'),
+            rid: el
+              .querySelector('.title')
+              .getAttribute('href')
+              .split('/')
+              .pop(),
+          };
+        });
+      },
+    );
+    console.log(list);
   }
 }
